@@ -14,6 +14,7 @@ export interface Chapter {
   title_fr: string | null
   chapter_number: number | null
   page_number: number | null
+  group_name: string | null
   position: number
   item_count: number
 }

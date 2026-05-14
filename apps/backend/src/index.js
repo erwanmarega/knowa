@@ -47,9 +47,13 @@ async function initDB() {
       title_fr VARCHAR(255),
       chapter_number INTEGER,
       page_number INTEGER,
+      group_name VARCHAR(255),
       position INTEGER DEFAULT 0,
       created_at TIMESTAMP DEFAULT NOW()
     )
+  `)
+  await pool.query(`
+    ALTER TABLE chapters ADD COLUMN IF NOT EXISTS group_name VARCHAR(255)
   `)
   await pool.query(`
     CREATE TABLE IF NOT EXISTS items (
