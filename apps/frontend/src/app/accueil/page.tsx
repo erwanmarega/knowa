@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Globe } from "@/components/ui/globe"
 import { AmbientBlobs } from "@/components/ui/ambient-blobs"
 import { motion } from "framer-motion"
@@ -9,6 +11,7 @@ import {
 } from "lucide-react"
 import type { COBEOptions } from "cobe"
 import Link from "next/link"
+import { useAuth } from "@/context/AuthContext"
 
 const GLOBE_CONFIG: COBEOptions = {
   width: 800,
@@ -34,7 +37,7 @@ const subjects = [
     Icon: Book,
     iconGradient: "from-blue-500 to-cyan-400",
     barGradient: "from-blue-500 to-cyan-400",
-    progress: 65,
+    progress: 0,
     lessons: 24,
     href: null,
   },
@@ -44,7 +47,7 @@ const subjects = [
     Icon: Atom,
     iconGradient: "from-violet-500 to-purple-400",
     barGradient: "from-violet-500 to-purple-400",
-    progress: 40,
+    progress: 0,
     lessons: 18,
     href: null,
   },
@@ -54,7 +57,7 @@ const subjects = [
     Icon: GlobeIcon,
     iconGradient: "from-pink-500 to-orange-400",
     barGradient: "from-pink-500 to-orange-400",
-    progress: 80,
+    progress: 0,
     lessons: 12,
     href: null,
   },
@@ -64,7 +67,7 @@ const subjects = [
     Icon: BookText,
     iconGradient: "from-rose-500 to-pink-400",
     barGradient: "from-rose-500 to-pink-400",
-    progress: 55,
+    progress: 0,
     lessons: 30,
     href: null,
   },
@@ -74,7 +77,7 @@ const subjects = [
     Icon: Languages,
     iconGradient: "from-emerald-500 to-green-400",
     barGradient: "from-emerald-500 to-green-400",
-    progress: 30,
+    progress: 0,
     lessons: 20,
     href: "/cours/anglais",
   },
@@ -91,6 +94,17 @@ const fadeUp = {
 }
 
 export default function Dashboard() {
+  const { user, isLoading, logout } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, isLoading, router])
+
+  if (isLoading || !user) return null
+
   return (
     <div className="min-h-screen w-full bg-[#030712] text-white overflow-x-hidden">
       <AmbientBlobs variant="home" />
@@ -107,9 +121,13 @@ export default function Dashboard() {
             <Trophy className="w-3.5 h-3.5 text-yellow-400" />
             <span className="text-xs text-yellow-300/80 font-medium">Niveau 3</span>
           </div>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-xs font-bold shadow-md">
-            U
-          </div>
+          <button
+            onClick={() => { logout(); router.push('/login') }}
+            className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-xs font-bold shadow-md hover:opacity-80 transition-opacity"
+            title="Se déconnecter"
+          >
+            {user.username[0].toUpperCase()}
+          </button>
         </div>
       </nav>
 
@@ -125,9 +143,9 @@ export default function Dashboard() {
           <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2">
             Bonjour,{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-              explorateur
+              {user.username}
             </span>{" "}
-            👋
+            !
           </h1>
           <p className="text-white/40 text-sm md:text-base mb-7">Reprends là où tu t&apos;es arrêté.</p>
 

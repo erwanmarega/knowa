@@ -46,3 +46,27 @@ export interface ChaptersResponse {
 export const getSubjects = () => apiFetch<Subject[]>('/api/subjects')
 export const getChapters = (slug: string) => apiFetch<ChaptersResponse>(`/api/subjects/${slug}/chapters`)
 export const getChapterItems = (id: string) => apiFetch<ChapterWithItems>(`/api/chapters/${id}/items`)
+
+export interface AuthResponse {
+  token: string
+  user: { id: number; username: string; email: string }
+}
+
+async function authPost(path: string, body: object): Promise<AuthResponse> {
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { error?: string }).error || 'Request failed')
+  }
+  return res.json()
+}
+
+export const loginUser = (email: string, password: string) =>
+  authPost('/auth/login', { email, password })
+
+export const registerUser = (username: string, email: string, password: string) =>
+  authPost('/auth/register', { username, email, password })
