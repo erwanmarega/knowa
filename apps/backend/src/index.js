@@ -198,7 +198,7 @@ app.get('/api/documents/:id/download', async (req, res) => {
 })
 
 initDB()
-  .then(() => app.listen(PORT, () => console.log(`Backend running on port ${PORT}`)))
+  .then(() => app.listen(PORT, '0.0.0.0', () => console.log(`Backend running on port ${PORT}`)))
   .catch((err) => {
     console.error('DB init failed:', err)
     process.exit(1)
