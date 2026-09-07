@@ -8,6 +8,9 @@ export interface Subject {
   name: string
   slug: string
   chapter_count: number
+  group_count: number
+  item_count: number
+  document_count: number
 }
 
 export interface Chapter {
@@ -20,6 +23,7 @@ export interface Chapter {
   group_name: string | null
   position: number
   item_count: number
+  document_count: number
 }
 
 export interface Item {
@@ -30,10 +34,13 @@ export interface Item {
   position: number
 }
 
+export type DocumentKind = 'cours' | 'exos' | 'correction'
+
 export interface Document {
   id: number
   filename: string
   content_type: string | null
+  kind: DocumentKind | null
   created_at: string
 }
 
@@ -57,6 +64,13 @@ export interface ChaptersResponse {
 export const getSubjects = () => apiFetch<Subject[]>('/api/subjects')
 export const getChapters = (slug: string) => apiFetch<ChaptersResponse>(`/api/subjects/${slug}/chapters`)
 export const getChapterItems = (id: string) => apiFetch<ChapterWithItems>(`/api/chapters/${id}/items`)
+
+// Le dashboard est un client component (auth localStorage) -> fetch navigateur
+export async function getSubjectsClient(): Promise<Subject[]> {
+  const res = await fetch(`${BROWSER_API_URL}/api/subjects`)
+  if (!res.ok) throw new Error(`API error ${res.status}`)
+  return res.json()
+}
 
 // Appelé depuis le navigateur (clic utilisateur) -> BROWSER_API_URL, pas SERVER_API_URL
 export async function getDocumentUrl(id: number): Promise<{ url: string; filename: string }> {

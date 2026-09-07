@@ -30,7 +30,10 @@ export default async function CoursPage({ params }: { params: Promise<{ slug: st
         <div className="mb-10">
           <p className="text-xs text-white/30 uppercase tracking-widest font-semibold mb-2">Cours</p>
           <h1 className="text-3xl font-extrabold text-white mb-1">{subject_name}</h1>
-          <p className="text-white/40 text-sm">{chapters.length} chapitres disponibles</p>
+          <p className="text-white/40 text-sm">
+            {chapters.length} chapitre{chapters.length > 1 ? "s" : ""} disponible
+            {chapters.length > 1 ? "s" : ""}
+          </p>
         </div>
 
         <ChapterGroups groups={grouped} slug={slug} />

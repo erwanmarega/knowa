@@ -75,6 +75,10 @@ async function initDB() {
       created_at TIMESTAMP DEFAULT NOW()
     )
   `)
+  // 'cours' | 'exos' | 'correction' | NULL (document isolé)
+  await pool.query(`
+    ALTER TABLE documents ADD COLUMN IF NOT EXISTS kind VARCHAR(30)
+  `)
 }
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }))
@@ -124,9 +128,15 @@ app.post('/auth/login', async (req, res) => {
 app.get('/api/subjects', async (_req, res) => {
   try {
     const result = await pool.query(
-      `SELECT s.*, COUNT(c.id)::int AS chapter_count
+      `SELECT s.*,
+              COUNT(DISTINCT c.id)::int AS chapter_count,
+              COUNT(DISTINCT c.group_name)::int AS group_count,
+              COUNT(DISTINCT i.id)::int AS item_count,
+              COUNT(DISTINCT d.id)::int AS document_count
        FROM subjects s
        LEFT JOIN chapters c ON c.subject_id = s.id
+       LEFT JOIN items i ON i.chapter_id = c.id
+       LEFT JOIN documents d ON d.chapter_id = c.id
        GROUP BY s.id
        ORDER BY s.name`
     )
@@ -140,10 +150,13 @@ app.get('/api/subjects', async (_req, res) => {
 app.get('/api/subjects/:slug/chapters', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT c.*, s.name AS subject_name, COUNT(i.id)::int AS item_count
+      `SELECT c.*, s.name AS subject_name,
+              COUNT(DISTINCT i.id)::int AS item_count,
+              COUNT(DISTINCT d.id)::int AS document_count
        FROM chapters c
        JOIN subjects s ON s.id = c.subject_id
        LEFT JOIN items i ON i.chapter_id = c.id
+       LEFT JOIN documents d ON d.chapter_id = c.id
        WHERE s.slug = $1
        GROUP BY c.id, s.name
        ORDER BY c.position, c.chapter_number`,
@@ -174,7 +187,9 @@ app.get('/api/chapters/:id/items', async (req, res) => {
       [req.params.id]
     )
     const documents = await pool.query(
-      'SELECT id, filename, content_type, created_at FROM documents WHERE chapter_id = $1 ORDER BY created_at',
+      `SELECT id, filename, content_type, kind, created_at
+       FROM documents WHERE chapter_id = $1
+       ORDER BY CASE kind WHEN 'cours' THEN 1 WHEN 'exos' THEN 2 WHEN 'correction' THEN 3 ELSE 4 END, created_at`,
       [req.params.id]
     )
     res.json({ chapter: chapter.rows[0], items: items.rows, documents: documents.rows })

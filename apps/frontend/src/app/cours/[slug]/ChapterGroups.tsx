@@ -1,7 +1,7 @@
 "use client"
 
 import { Chapter } from "@/lib/api"
-import { BookOpen, ChevronRight, Hash, ChevronDown } from "lucide-react"
+import { BookOpen, ChevronRight, Hash, ChevronDown, FileText } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 
@@ -24,8 +24,17 @@ function ChapterCard({ chapter, slug }: { chapter: Chapter; slug: string }) {
         )}
         <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/[0.06]">
           <div className="flex items-center gap-1.5 text-xs text-white/30">
-            <BookOpen className="w-3.5 h-3.5" />
-            {chapter.item_count} entrées
+            {chapter.item_count > 0 ? (
+              <>
+                <BookOpen className="w-3.5 h-3.5" />
+                {chapter.item_count} entrées
+              </>
+            ) : (
+              <>
+                <FileText className="w-3.5 h-3.5" />
+                {chapter.document_count} document{chapter.document_count > 1 ? "s" : ""}
+              </>
+            )}
           </div>
           <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-white/50 group-hover:translate-x-0.5 transition-all" />
         </div>

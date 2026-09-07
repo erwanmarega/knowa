@@ -40,9 +40,13 @@ export default async function ChapterPage({
           {chapter.title_fr && (
             <p className="text-white/40 text-base">{chapter.title_fr}</p>
           )}
-          {items.length > 0 && (
-            <p className="text-white/25 text-sm mt-2">{items.length} entrées</p>
-          )}
+          <p className="text-white/25 text-sm mt-2">
+            {items.length > 0
+              ? `${items.length} entrées`
+              : documents.length > 0
+                ? `${documents.length} document${documents.length > 1 ? "s" : ""}`
+                : "Chapitre vide"}
+          </p>
         </div>
 
         {type === "vocabulary" && <VocabularyViewer items={items} />}
