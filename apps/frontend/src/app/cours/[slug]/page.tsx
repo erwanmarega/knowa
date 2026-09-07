@@ -9,7 +9,7 @@ export default async function CoursPage({ params }: { params: Promise<{ slug: st
   const data = await getChapters(slug).catch(() => notFound())
   const { subject_name, chapters } = data
 
-  const sorted = [...chapters].sort((a, b) => (a.chapter_number ?? 0) - (b.chapter_number ?? 0))
+  const sorted = [...chapters].sort((a, b) => (a.chapter_number ?? Infinity) - (b.chapter_number ?? Infinity))
 
   const grouped = sorted.reduce<{ name: string | null; chapters: Chapter[] }[]>((acc, ch) => {
     const last = acc[acc.length - 1]

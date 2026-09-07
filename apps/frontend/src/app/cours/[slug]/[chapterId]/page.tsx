@@ -4,6 +4,7 @@ import { Breadcrumb } from "@/components/ui/breadcrumb"
 import { notFound } from "next/navigation"
 import { VocabularyViewer } from "./VocabularyViewer"
 import { VerbTableViewer } from "./VerbTableViewer"
+import { DocumentViewer } from "./DocumentViewer"
 
 export default async function ChapterPage({
   params,
@@ -13,8 +14,8 @@ export default async function ChapterPage({
   const { slug, chapterId } = await params
 
   const data = await getChapterItems(chapterId).catch(() => notFound())
-  const { chapter, items } = data
-  const type = items[0]?.type ?? "vocabulary"
+  const { chapter, items, documents } = data
+  const type = items[0]?.type
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
@@ -39,11 +40,21 @@ export default async function ChapterPage({
           {chapter.title_fr && (
             <p className="text-white/40 text-base">{chapter.title_fr}</p>
           )}
-          <p className="text-white/25 text-sm mt-2">{items.length} entrées</p>
+          {items.length > 0 && (
+            <p className="text-white/25 text-sm mt-2">{items.length} entrées</p>
+          )}
         </div>
 
         {type === "vocabulary" && <VocabularyViewer items={items} />}
         {type === "verb_table" && <VerbTableViewer items={items} />}
+        {documents.length > 0 && (
+          <div className="mt-8">
+            {items.length > 0 && (
+              <h2 className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-3">Documents</h2>
+            )}
+            <DocumentViewer documents={documents} />
+          </div>
+        )}
       </main>
     </div>
   )

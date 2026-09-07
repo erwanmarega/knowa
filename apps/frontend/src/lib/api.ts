@@ -30,9 +30,17 @@ export interface Item {
   position: number
 }
 
+export interface Document {
+  id: number
+  filename: string
+  content_type: string | null
+  created_at: string
+}
+
 export interface ChapterWithItems {
   chapter: Chapter & { subject_name: string; subject_slug: string }
   items: Item[]
+  documents: Document[]
 }
 
 async function apiFetch<T>(path: string): Promise<T> {
@@ -49,6 +57,13 @@ export interface ChaptersResponse {
 export const getSubjects = () => apiFetch<Subject[]>('/api/subjects')
 export const getChapters = (slug: string) => apiFetch<ChaptersResponse>(`/api/subjects/${slug}/chapters`)
 export const getChapterItems = (id: string) => apiFetch<ChapterWithItems>(`/api/chapters/${id}/items`)
+
+// Appelé depuis le navigateur (clic utilisateur) -> BROWSER_API_URL, pas SERVER_API_URL
+export async function getDocumentUrl(id: number): Promise<{ url: string; filename: string }> {
+  const res = await fetch(`${BROWSER_API_URL}/api/documents/${id}/download`)
+  if (!res.ok) throw new Error(`API error ${res.status}`)
+  return res.json()
+}
 
 export interface AuthResponse {
   token: string
