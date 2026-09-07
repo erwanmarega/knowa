@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+// Server Components (fetch pendant le SSR, dans le réseau Docker) -> API_URL, lu au runtime, jamais inliné
+const SERVER_API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+// Code exécuté dans le navigateur (login/signup) -> doit rester joignable depuis l'extérieur du réseau Docker
+const BROWSER_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 export interface Subject {
   id: number
@@ -33,7 +36,7 @@ export interface ChapterWithItems {
 }
 
 async function apiFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, { cache: 'no-store' })
+  const res = await fetch(`${SERVER_API_URL}${path}`, { cache: 'no-store' })
   if (!res.ok) throw new Error(`API error ${res.status}: ${path}`)
   return res.json()
 }
@@ -53,7 +56,7 @@ export interface AuthResponse {
 }
 
 async function authPost(path: string, body: object): Promise<AuthResponse> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${BROWSER_API_URL}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

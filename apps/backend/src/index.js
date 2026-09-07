@@ -3,6 +3,7 @@ const cors = require('cors')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { Pool } = require('pg')
+const { getDownloadUrl } = require('./storage')
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -62,6 +63,16 @@ async function initDB() {
       type VARCHAR(50) NOT NULL,
       content JSONB NOT NULL,
       position INTEGER DEFAULT 0
+    )
+  `)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS documents (
+      id SERIAL PRIMARY KEY,
+      chapter_id INTEGER REFERENCES chapters(id) ON DELETE CASCADE,
+      r2_key VARCHAR(500) NOT NULL,
+      filename VARCHAR(255) NOT NULL,
+      content_type VARCHAR(100),
+      created_at TIMESTAMP DEFAULT NOW()
     )
   `)
 }
@@ -162,7 +173,24 @@ app.get('/api/chapters/:id/items', async (req, res) => {
       'SELECT * FROM items WHERE chapter_id = $1 ORDER BY position',
       [req.params.id]
     )
-    res.json({ chapter: chapter.rows[0], items: items.rows })
+    const documents = await pool.query(
+      'SELECT id, filename, content_type, created_at FROM documents WHERE chapter_id = $1 ORDER BY created_at',
+      [req.params.id]
+    )
+    res.json({ chapter: chapter.rows[0], items: items.rows, documents: documents.rows })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Erreur serveur' })
+  }
+})
+
+app.get('/api/documents/:id/download', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT r2_key, filename FROM documents WHERE id = $1', [req.params.id])
+    const doc = result.rows[0]
+    if (!doc) return res.status(404).json({ error: 'Document introuvable' })
+    const url = await getDownloadUrl(doc.r2_key)
+    res.json({ url, filename: doc.filename })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Erreur serveur' })
