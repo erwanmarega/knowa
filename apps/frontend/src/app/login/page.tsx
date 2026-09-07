@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { Suspense, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { SignInPage, Testimonial } from "@/components/ui/sign-in"
 import { useAuth } from "@/context/AuthContext"
 import { loginUser } from "@/lib/api"
@@ -28,8 +28,17 @@ const testimonials: Testimonial[] = [
 ]
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const { login } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -44,7 +53,9 @@ export default function LoginPage() {
     try {
       const { token, user } = await loginUser(email, password)
       login(token, user)
-      router.push('/accueil')
+      const redirect = searchParams.get('redirect')
+      const safeRedirect = redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/accueil'
+      router.push(safeRedirect)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Connexion échouée')
     } finally {

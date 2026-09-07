@@ -17,7 +17,7 @@ async function uploadFile(key, body, contentType) {
   return key
 }
 
-function getDownloadUrl(key, expiresInSeconds = 3600) {
+function getDownloadUrl(key, expiresInSeconds = 300) {
   return getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key: key }), { expiresIn: expiresInSeconds })
 }
 

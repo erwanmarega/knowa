@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { BookOpen, PencilLine, CheckCircle2, FileText, X, ExternalLink, Loader2 } from "lucide-react"
-import { getDocumentUrl, Document, DocumentKind } from "@/lib/api"
+import { useRouter } from "next/navigation"
+import { getDocumentUrl, ApiError, Document, DocumentKind } from "@/lib/api"
 
 type KindMeta = {
   label: string
@@ -57,6 +58,7 @@ const FALLBACK: KindMeta = {
 const metaFor = (kind: DocumentKind | null) => (kind ? KINDS[kind] ?? FALLBACK : FALLBACK)
 
 export function DocumentViewer({ documents }: { documents: Document[] }) {
+  const router = useRouter()
   const [openDoc, setOpenDoc] = useState<{ url: string; filename: string } | null>(null)
   const [loadingId, setLoadingId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -67,8 +69,13 @@ export function DocumentViewer({ documents }: { documents: Document[] }) {
     try {
       const { url, filename } = await getDocumentUrl(doc.id)
       setOpenDoc({ url, filename })
-    } catch {
-      setError("Impossible de charger le document. Réessaie dans un instant.")
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setError("Connecte-toi pour accéder à ce document.")
+        router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`)
+      } else {
+        setError("Impossible de charger le document. Réessaie dans un instant.")
+      }
     } finally {
       setLoadingId(null)
     }

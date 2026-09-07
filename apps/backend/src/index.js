@@ -22,6 +22,18 @@ const pool = process.env.DATABASE_URL
 app.use(cors({ origin: process.env.CORS_ORIGIN || true }))
 app.use(express.json())
 
+function requireAuth(req, res, next) {
+  const header = req.headers.authorization || ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null
+  if (!token) return res.status(401).json({ error: 'Authentification requise' })
+  try {
+    req.userId = jwt.verify(token, JWT_SECRET).userId
+    next()
+  } catch {
+    return res.status(401).json({ error: 'Token invalide ou expiré' })
+  }
+}
+
 async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -199,7 +211,7 @@ app.get('/api/chapters/:id/items', async (req, res) => {
   }
 })
 
-app.get('/api/documents/:id/download', async (req, res) => {
+app.get('/api/documents/:id/download', requireAuth, async (req, res) => {
   try {
     const result = await pool.query('SELECT r2_key, filename FROM documents WHERE id = $1', [req.params.id])
     const doc = result.rows[0]

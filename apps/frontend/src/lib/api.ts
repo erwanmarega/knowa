@@ -1,3 +1,5 @@
+import { getToken } from './auth'
+
 // Server Components (fetch pendant le SSR, dans le réseau Docker) -> API_URL, lu au runtime, jamais inliné
 const SERVER_API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 // Code exécuté dans le navigateur (login/signup) -> doit rester joignable depuis l'extérieur du réseau Docker
@@ -73,9 +75,18 @@ export async function getSubjectsClient(): Promise<Subject[]> {
 }
 
 // Appelé depuis le navigateur (clic utilisateur) -> BROWSER_API_URL, pas SERVER_API_URL
+export class ApiError extends Error {
+  constructor(public status: number, message: string) {
+    super(message)
+  }
+}
+
 export async function getDocumentUrl(id: number): Promise<{ url: string; filename: string }> {
-  const res = await fetch(`${BROWSER_API_URL}/api/documents/${id}/download`)
-  if (!res.ok) throw new Error(`API error ${res.status}`)
+  const token = getToken()
+  const res = await fetch(`${BROWSER_API_URL}/api/documents/${id}/download`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) throw new ApiError(res.status, `API error ${res.status}`)
   return res.json()
 }
 
